@@ -1,0 +1,38 @@
+### REST API Server - Health Check
+GET http://localhost:3000/health
+
+### REST API Server - Convert to PDF
+POST http://localhost:3000/convert
+Content-Type: application/json
+
+{
+    "body": "<html><body><h1>Hello from REST API!</h1><p>This is a test PDF.</p></body></html>",
+    "outputMode": "base64"
+}
+
+### REST API Server - Convert with Compression
+POST http://localhost:3000/convert
+Content-Type: application/json
+
+{
+    "body": "<html><body><h1>Compressed PDF</h1><p>This will be gzip compressed.</p></body></html>",
+    "outputMode": "compress"
+}
+
+### Lambda Runtime Interface - Convert to PDF
+POST http://localhost:9000/2015-03-31/functions/function/invocations
+Content-Type: application/json
+
+{
+    "body": "<html><body><h1>Hello from Lambda!</h1><p>This is a test PDF.</p></body></html>",
+    "outputMode": "base64"
+}
+
+### Lambda Runtime Interface - Convert with Compression
+POST http://localhost:9000/2015-03-31/functions/function/invocations
+Content-Type: application/json
+
+{
+    "body": "<html><body><h1>Compressed PDF</h1><p>This will be gzip compressed.</p></body></html>",
+    "outputMode": "compress"
+}

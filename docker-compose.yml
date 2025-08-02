@@ -1,0 +1,25 @@
+services:
+  # REST API Server (default)
+  html-to-pdf:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "3000:3000"
+    command: ["server"]
+
+  # Lambda Runtime Interface (for AWS Lambda testing)
+  html-to-pdf-lambda:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - AWS_LAMBDA_FUNCTION_NAME=html-to-pdf-converter
+      - AWS_LAMBDA_FUNCTION_MEMORY_SIZE=2048
+      - _HANDLER=dist/index.handler
+    ports:
+      - "9000:8080"
+    profiles:
+      - amd64 

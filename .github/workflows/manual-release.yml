@@ -1,0 +1,98 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+      release_notes:
+        description: 'Release notes (optional)'
+        required: false
+        type: string
+        default: 'See CHANGELOG.md for detailed changes.'
+
+jobs:
+  # ==========================================
+  # Create Release Job
+  # ==========================================
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate version format
+        run: |
+          if [[ ! "${{ inputs.version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Error: Version must be in format v1.0.0"
+            exit 1
+          fi
+          echo "✅ Version format is valid: ${{ inputs.version }}"
+
+      - name: Check if tag already exists
+        run: |
+          if git rev-parse "${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "❌ Error: Tag ${{ inputs.version }} already exists"
+            exit 1
+          fi
+          echo "✅ Tag ${{ inputs.version }} is available"
+
+      - name: Create and push tag
+        run: |
+          echo "🏷️ Creating tag ${{ inputs.version }}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag "${{ inputs.version }}"
+          git push origin "${{ inputs.version }}"
+          echo "✅ Tag pushed successfully"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: Release ${{ inputs.version }}
+          body: |
+            🚀 **Release ${{ inputs.version }}**
+            
+            ## 📦 Docker Images
+            ```bash
+            # Latest version
+            docker pull ghcr.io/${{ github.repository }}:${{ inputs.version }}
+            
+            # Stable version
+            docker pull ghcr.io/${{ github.repository }}:stable
+            
+            # Latest development
+            docker pull ghcr.io/${{ github.repository }}:latest
+            ```
+            
+            ## 🚀 Quick Start
+            ```bash
+            docker run -p 3000:3000 ghcr.io/${{ github.repository }}:${{ inputs.version }}
+            ```
+            
+            ## 📝 Release Notes
+            ${{ inputs.release_notes }}
+            
+            ---
+            📋 **For detailed changes, see [CHANGELOG.md](CHANGELOG.md)**
+          draft: false
+          prerelease: false
+
+      - name: Summary
+        run: |
+          echo "🎉 Release ${{ inputs.version }} created successfully!"
+          echo ""
+          echo "📋 What happens next:"
+          echo "1. ✅ GitHub release created"
+          echo "2. 🔄 CI/CD pipeline will automatically trigger"
+          echo "3. 🐳 Docker images will be built and pushed"
+          echo "4. 📦 package.json version will be updated"
+          echo ""
+          echo "🔗 Monitor progress: https://github.com/${{ github.repository }}/actions"
